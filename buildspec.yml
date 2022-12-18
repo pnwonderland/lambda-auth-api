@@ -1,0 +1,11 @@
+version: 0.2
+
+phases:
+    install:
+        commands:
+            - /usr/local/bin/dotnet-install.sh --channel LTS
+            - dotnet tool update -g Amazon.Lambda.Tools
+            
+    build:
+        commands:
+            - dotnet lambda deploy-function pnwLambdaAuthApi --project-location ./src/ --config-file aws-lambda-tools-defaults.json
