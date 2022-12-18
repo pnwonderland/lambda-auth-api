@@ -3,7 +3,7 @@ version: 0.2
 phases:
     install:
         commands:
-            - /usr/local/bin/dotnet-install.sh --channel LTS
+            - /usr/local/bin/dotnet-install.sh --channel 7.0
             - dotnet tool update -g Amazon.Lambda.Tools
             
     build:
