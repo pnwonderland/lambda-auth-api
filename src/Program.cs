@@ -103,7 +103,16 @@ app.UseSwaggerUI();
 app.UseAuthentication();
 app.UseAuthorization();
 
-app.MapGet(Routes.Root, (IOptions<AwsJwtOptions> jwtOptions) => jwtOptions.Value).AllowAnonymous();
+app.MapGet(Routes.Root, (IOptions<AwsJwtOptions> jwtOptions) => new AwsJwtOptions() {
+    AccessKey = !string.IsNullOrWhiteSpace(jwtOptions.Value.AccessKey)
+        ? "***"
+        : null,
+    SecretKey = !string.IsNullOrWhiteSpace(jwtOptions.Value.SecretKey)
+        ? "***"
+        : null,
+    Authority = jwtOptions.Value.Authority,
+    ClientId = jwtOptions.Value.ClientId
+}).AllowAnonymous();
 
 app.MapPost(Routes.Login, async (IOptions<AwsJwtOptions> jwtOptions, 
     IAmazonCognitoIdentityProvider cognito,
