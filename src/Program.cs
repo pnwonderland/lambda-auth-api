@@ -4,6 +4,7 @@ using Amazon.CognitoIdentityProvider.Model;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.Options;
 using Microsoft.OpenApi.Models;
+using System.Net.Http;
 
 const string DEFAULT_POLICY = "default";
 const string EMAIL_ATTRIBUTE = "email";
@@ -81,6 +82,19 @@ builder.Services.AddSingleton<IAmazonCognitoIdentityProvider, AmazonCognitoIdent
 
 });
 
+builder.Services.AddSingleton<HttpClient>(services => {
+
+    var jwtOptions = services.GetRequiredService<IOptions<AwsJwtOptions>>();
+
+    string baseAddress = $"{jwtOptions?.Value?.Authority?.TrimEnd('/')}/"
+        ?? throw new ArgumentNullException(nameof(baseAddress));
+
+    return new HttpClient() {
+        BaseAddress = new Uri(baseAddress)
+    };
+
+});
+
 var app = builder.Build();
   
 app.UseSwagger();
@@ -151,6 +165,20 @@ app.MapPost(Routes.Register, async (IOptions<AwsJwtOptions> jwtOptions,
 
 }).AllowAnonymous();
 
+app.MapGet(Routes.JwksJson, async (HttpClient httpClient) => {
+
+    var response = await httpClient.GetAsync(Routes.JwksJson.TrimStart('/'));
+    return await response.Content.ReadFromJsonAsync<JwtSigningKeys>();
+
+}).AllowAnonymous();
+
+app.MapGet(Routes.OpenIdConfiguration, async (HttpClient httpClient) => {
+
+    var response = await httpClient.GetAsync(Routes.OpenIdConfiguration.TrimStart('/'));
+    return await response.Content.ReadFromJsonAsync<JwtOpenIdConfiguration>();
+
+}).AllowAnonymous();
+
 app.MapGet("/secure", () => {
 
 
@@ -175,9 +203,41 @@ public record JwtOptions
     public string? ClientId { get; set; }
 }
 
+public record JwtSigningKey
+{
+    public string? alg { get; set; }
+    public string? e { get; set; }
+    public string? kid { get; set; }
+    public string? kty { get; set; }
+    public string? n { get; set; }
+    public string? use { get; set; }
+}
+
+public record JwtSigningKeys
+{
+    public IReadOnlyCollection<JwtSigningKey>? keys { get; set; }
+}
+
+public record JwtOpenIdConfiguration
+    {
+        public string? authorization_endpoint { get; set; }
+        public IReadOnlyCollection<string>? id_token_signing_alg_values_supported { get; set; }
+        public string? issuer { get; set; }
+        public string? jwks_uri { get; set; }
+        public IReadOnlyCollection<string>? response_types_supported { get; set; }
+        public IReadOnlyCollection<string>? scopes_supported { get; set; }
+        public IReadOnlyCollection<string>? subject_types_supported { get; set; }
+        public string? token_endpoint { get; set; }
+        public IReadOnlyCollection<string>? token_endpoint_auth_methods_supported { get; set; }
+        public string? userinfo_endpoint { get; set; }
+    }
+
 public static class Routes
 {
     public const string Root = "/";
     public const string Login = "/login";
     public const string Register = "/register";
+    public const string JwksJson = "/.well-known/jwks.json";
+    public const string OpenIdConfiguration = "/.well-known/openid-configuration";
 }
+
