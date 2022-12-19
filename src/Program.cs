@@ -188,11 +188,11 @@ app.MapGet(Routes.OpenIdConfiguration, async (HttpClient httpClient) => {
 
 }).AllowAnonymous();
 
-app.MapGet("/secure", () => {
+// app.MapGet("/secure", () => {
 
 
-    return "secured!";
-}).RequireAuthorization(DEFAULT_POLICY);
+//     return "secured!";
+// }).RequireAuthorization(DEFAULT_POLICY);
 
 app.Run();
 
