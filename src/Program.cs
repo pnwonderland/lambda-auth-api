@@ -4,7 +4,6 @@ using Amazon.CognitoIdentityProvider.Model;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.Options;
 using Microsoft.OpenApi.Models;
-using System.Net.Http;
 
 const string DEFAULT_POLICY = "default";
 const string EMAIL_ATTRIBUTE = "email";
